@@ -24,5 +24,8 @@
         "karma-typescript": "^4.1.1",
         "publish-if-not-exists": "^1.1.0",
         "typescript": "^3.9.7"
+    },
+    "dependencies": {
+        "await-lock": "^2.0.0"
     }
 }
