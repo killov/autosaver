@@ -7,6 +7,11 @@ interface Listenable {
     listen(change: () => void);
 }
 
+export interface SaveParams<TData> {
+    changes: Changes<TData>;
+    allData: TData;
+}
+
 export class Autosaver<TData> {
     private debounce: Debounce;
     private _isChanged = false;
@@ -15,7 +20,7 @@ export class Autosaver<TData> {
     private lock: AwaitLock = new AwaitLock();
 
     constructor(private params: Params<TData>) {
-        this.debounce = new Debounce(1000, () => this.save())
+        this.debounce = new Debounce(1000, () => this.save());
     }
 
     public init(changeListener: Listenable) {
@@ -51,6 +56,22 @@ export class Autosaver<TData> {
             this.lock.release();
             return;
         }
-        //todo
+        try {
+            const data = this.createData();
+            const changes = this.createChanges(data);
+            if (changes.hasChanges()) {
+                this._isChanged = true;
+                //state.value = SaveState.saving;
+                await this.params.save({
+                    changes: changes,
+                    allData: data
+                });
+                //state.value = SaveState.done;
+                this.currentData = data;
+                this.isDirty = this.createChanges(this.createData()).hasChanges();
+            }
+        } finally {
+            this.lock.release();
+        }
     }
 }
